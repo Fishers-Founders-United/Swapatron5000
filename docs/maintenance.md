@@ -56,6 +56,10 @@ Each line is one week. Stewards take turns.
 | Sat Jun 26, 2027 | Open | |
 | Sat Jul 3, 2027 | Open | |
 | Sat Jul 10, 2027 | Open | |
+| Sat Aug 7, 2027 | Open | |
+| Sat Aug 14, 2027 | Open | |
+| Sat Aug 21, 2027 | Open | |
+| Sat Aug 28, 2027 | Open | |
 
 ### How to take a week
 
@@ -65,20 +69,4 @@ Each line is one week. Stewards take turns.
 
 1. Tap the pencil icon at the top right of this page.
 2. Replace "Open" with your GitHub username on the week you want.
-3. Tap **Commit changes**, then **Propose changes**, then **Create pull request**.
-
-### How to log a check
-
-After your check, open the standing "Box check log" issue and leave a comment: the date, what you found, and anything that needs fixing. A photo helps. Each logged check earns a spot on the [Contributors Wall](../CONTRIBUTORS.md).
-
-## If something is wrong
-
-Anyone can report a problem. Scan the QR code on the box, or open a [help issue](../../../issues/new?template=help.yml).
-
-## If nobody takes a week
-
-Two missed weeks in a row is a warning sign. The maintainers will ask for volunteers. If the rota can not be filled for a month, the box should be emptied and closed until it can.
-
-## Alerts (planned)
-
-Once a sensor node is built, it should open an issue when humidity in the sealed bin stays high, when the battery is low, or when no check has been logged in 10 days.
+3. Ta
