@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Swapatron 5000 – Took &amp; Left Form</title>
+  <meta name="description" content="Log parts you took from or left in the Swapatron box." />
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f6f4ee;
+      color: #1d2a26;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    .container {
+      background: #fff;
+      padding: 2rem;
+      margin: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      max-width: 500px;
+      width: 100%;
+    }
+    h1 {
+      margin-top: 0;
+      color: #0f6e56;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    button {
+      margin-top: 1.5rem;
+      padding: 0.75rem 1.5rem;
+      background-color: #0f6e56;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0c5a48;
+    }
+    .note {
+      font-size: 0.9rem;
+      color: #555;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Took &amp; Left Form</h1>
+    <p>Help the community by letting us know which parts you took from the box and which parts you are leaving for others.</p>
+    <form id="tookLeftForm" onsubmit="handleSubmit(event)">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required />
+
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required />
+
+      <label for="taken">Part Taken (optional)</label>
+      <input type="text" id="taken" name="taken" placeholder="e.g., 10kΩ resistor" />
+
+      <label for="left">Part Left (optional)</label>
+      <input type="text" id="left" name="left" placeholder="e.g., Arduino Nano" />
+
+      <label for="comments">Comments / Notes</label>
+      <textarea id="comments" name="comments" rows="4" placeholder="Any additional info"></textarea>
+
+      <button type="submit">Submit</button>
+    </form>
+    <p class="note">*This form uses your default mail client to send the data. No server‑side processing is required.*</p>
+  </div>
+  <script>
+    function encodeMailBody(data) {
+      return Object.entries(data)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join('%0D%0A');
+    }
+    function handleSubmit(event) {
+      event.preventDefault();
+      const form = event.target;
+      const data = {
+        Name: form.name.value.trim(),
+        Email: form.email.value.trim(),
+        "Part Taken": form.taken.value.trim() || 'None',
+        "Part Left": form.left.value.trim() || 'None',
+        Comments: form.comments.value.trim() || 'None'
+      };
+      const subject = encodeURIComponent('Swapatron 5000 – Took & Left Submission');
+      const body = encodeURIComponent(encodeMailBody(data));
+      const mailto = `mailto:swapatron@example.com?subject=${subject}&body=${body}`;
+      window.location.href = mailto;
+    }
+  </script>
+</body>
+</html>
