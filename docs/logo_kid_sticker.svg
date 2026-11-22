@@ -1,0 +1,33 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="sunGrad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#FFEB3B" />
+      <stop offset="100%" stop-color="#FBC02D" />
+    </radialGradient>
+  </defs>
+  <!-- Sun core -->
+  <circle cx="100" cy="100" r="50" fill="url(#sunGrad)" />
+  <!-- Sun rays -->
+  <g stroke="#FBC02D" stroke-width="8">
+    <line x1="100" y1="20" x2="100" y2="0" />
+    <line x1="100" y1="180" x2="100" y2="200" />
+    <line x1="20" y1="100" x2="0" y2="100" />
+    <line x1="180" y1="100" x2="200" y2="100" />
+    <line x1="45" y1="45" x2="30" y2="30" />
+    <line x1="155" y1="45" x2="170" y2="30" />
+    <line x1="45" y1="155" x2="30" y2="170" />
+    <line x1="155" y1="155" x2="170" y2="170" />
+  </g>
+  <!-- Smiling mouth -->
+  <path d="M70 120 Q100 150 130 120" stroke="#5D4037" stroke-width="6" fill="none" />
+  <!-- Eyes -->
+  <circle cx="80" cy="85" r="8" fill="#5D4037" />
+  <circle cx="120" cy="85" r="8" fill="#5D4037" />
+  <!-- Heart in the center -->
+  <path d="M100 100
+           m -10,0
+           a 10,10 0 1,0 20,0
+           a 10,10 0 1,0 -20,0
+           l 10,15
+           z" fill="#E91E63" />
+</svg>
