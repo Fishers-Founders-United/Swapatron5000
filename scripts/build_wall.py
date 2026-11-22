@@ -71,6 +71,7 @@ USERNAME = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$")
 
 
 def load():
+    """TODO: Add docstring for load."""
     rows = []
     with SOURCE.open(newline="", encoding="utf-8") as f:
         for line_no, row in enumerate(csv.DictReader(f), start=2):
@@ -114,6 +115,7 @@ def load():
 
 
 def level_for(points):
+    """TODO: Add docstring for level_for."""
     for threshold, name in LEVELS:
         if points >= threshold:
             return name
@@ -121,6 +123,7 @@ def level_for(points):
 
 
 def badges_for(kind_counts):
+    """TODO: Add docstring for badges_for."""
     earned = [name for name, kind, need in BADGES if kind_counts[kind] >= need]
     if sum(1 for kind in TYPES if kind_counts[kind]) >= ALL_ROUNDER_TYPES:
         earned.append("All-rounder")
@@ -128,6 +131,7 @@ def badges_for(kind_counts):
 
 
 def tally(rows):
+    """TODO: Add docstring for tally."""
     points = Counter()
     counts = Counter()
     kinds = defaultdict(Counter)
@@ -147,12 +151,14 @@ def latest(rows):
 
 
 def md_cell(text):
+    """TODO: Add docstring for md_cell."""
     return html.escape(text, quote=False).replace("|", "/")
 
 
 # ---------- CONTRIBUTORS.md ----------
 
 def render_wall(rows):
+    """TODO: Add docstring for render_wall."""
     points, counts, kinds, ranked = tally(rows)
     out = [
         "# Contributors Wall",
@@ -215,6 +221,7 @@ def render_wall(rows):
 # ---------- README.md block ----------
 
 def render_readme_block(rows):
+    """TODO: Add docstring for render_readme_block."""
     points, counts, kinds, ranked = tally(rows)
     top = ranked[:TOP_FIVE]
     out = [
@@ -266,6 +273,7 @@ def render_readme_block(rows):
 # ---------- index.html block ----------
 
 def render_page_block(rows):
+    """TODO: Add docstring for render_page_block."""
     points, counts, kinds, ranked = tally(rows)
     top = ranked[:TOP_FIVE]
     pad = "    "
@@ -316,6 +324,7 @@ def render_page_block(rows):
 
 
 def replace_block(path, block):
+    """TODO: Add docstring for replace_block."""
     text = path.read_text(encoding="utf-8")
     if START not in text or END not in text:
         print(f"Skipped {path.name}: WALL markers not found")
@@ -327,6 +336,7 @@ def replace_block(path, block):
 
 
 def main():
+    """TODO: Add docstring for main."""
     rows = load()
     WALL.write_text(render_wall(rows), encoding="utf-8")
     print(f"Wrote {WALL.name}")
