@@ -69,161 +69,116 @@ def table_rows(path, heading_hint=None):
             if set("".join(cells)) <= set("-: "):
                 continue
             rows.append(cells)
-        elif started:
+        elif started and not line.strip():
             break
-    return rows[1:]  # drop the header row
+    return rows
 
 
-def labels_from(cell):
-    return [x.strip("` ") for x in cell.split(",") if x.strip("` ")]
-
-
-def issue(title, labels, body):
-    return {"title": title, "labels": labels, "body": body}
-
-
-def build_issues():
-    items = []
-
-    # Starter issues
-    for title, labs in table_rows("docs/starter-issues.md"):
-        items.append(issue(
-            title, labels_from(labs),
-            f"{NOTHING_DECIDED}\n\nThis is one of the starter jobs for Swapatron5000. "
-            f"Comment to say you would like to take it, or to share a thought.\n\n"
-            f"New to GitHub? [Here is how to comment]({BLOB}/docs/have-your-say.md)."))
-
-    # Standing and extra issues (second table in the same file)
-    text = (ROOT / "docs/starter-issues.md").read_text(encoding="utf-8")
-    extra = table_rows("docs/starter-issues.md", "Also create:")
-    for title, labs in extra:
-        if title.startswith("One issue per bounty") or title.startswith("Confirm with the lab"):
-            continue
-        if any(i["title"] == title for i in items):
-            continue
-        items.append(issue(title, labels_from(labs),
-                           f"{NOTHING_DECIDED}\n\nA standing issue. Add a comment whenever you have something to report."))
-    items.append(issue(
-        "Confirm with the lab whether parcels can be received",
-        ["needs owner"],
-        "People can ask for parts to be shipped to the lab, but the lab has not agreed to receive parcels yet. "
-        f"Until it does, the notice in [ASKS.md]({BLOB}/ASKS.md) stays. When the lab confirms, "
-        "a maintainer removes the notice and records the answer here."))
-
-    # Decisions
-    for num, question, status, _where in table_rows("DECISIONS.md", "## Open questions"):
-        items.append(issue(
-            f"Decision {num}: {question}", ["decision"],
-            f"{NOTHING_DECIDED}\n\n**Question {num} in [DECISIONS.md]({BLOB}/DECISIONS.md):** {question}\n\n"
-            f"**Status:** {LINK_RE.sub(r'\\1', status)}\n\n"
-            "Comments are open now, and until Sunday, February 21, 2027. Maintainers post a proposed answer "
-            "between February 22 and 28, and final comments close March 14. Tell us what you think, "
-            "even if it is just a thumbs up or a thumbs down on the question."))
-
-    # Challenges
-    for doubt, _status, first in table_rows("CHALLENGES.md", "## Challenges we already know about"):
-        items.append(issue(
-            f"Challenge: {doubt}", ["challenge"],
-            f"Swapatron heard this one and is not scared.\n\n**First thoughts:** {first}\n\n"
-            "Pile on. What makes this worse than we think? What would fix it? You do not need a solution. "
-            f"Spotting the problem earns a point. See [CHALLENGES.md]({BLOB}/CHALLENGES.md)."))
-
-    # Six doors
-    for cells in table_rows("docs/start-here.md", "## The six doors"):
-        door, what, first, where = cells[:4]
-        door = door.strip("* ")
-        items.append(issue(
-            f"Door {door}", ["brief"],
-            f"{NOTHING_DECIDED}\n\n**This is the claim thread for this door.** Comment to say what you are taking, "
-            "so nobody does the same thing twice. More than one person can work on the same thing.\n\n"
-            f"**What you do:** {what}\n\n**First 15 minutes:** {LINK_RE.sub(r'\\1', first)}\n\n"
-            f"Start here: [start-here.md]({BLOB}/docs/start-here.md). "
-            f"Or [start a brief](https://github.com/{REPO}/issues/new?template=start-a-brief.yml)."))
-
-    # Integration tracks
-    for cells in table_rows("integrations/README.md", "## The tracks"):
-        track, goal, status = cells[:3]
-        track = track.strip("* ")
-        items.append(issue(
-            f"Integration: {track}", ["integration"],
-            f"{NOTHING_DECIDED}\n\n**Goal:** {goal}\n\n**Status:** {status}\n\n"
-            "This is the thread for this track. Comment with a first idea, a risk, or a question. "
-            "Anything with a battery, a lock, a camera, or structure needs review by a qualified person before it is built.\n\n"
-            f"Overview: [integrations/README.md]({BLOB}/integrations/README.md)."))
-
-    # Founding team roles
-    for cells in table_rows("docs/founding-team.md", "## The roles"):
-        role, what, time_, skills, beginners = cells[:5]
-        role = role.strip("* ")
-        items.append(issue(
-            f"Founding team role: {role}", ["founding-team"],
-            f"{NOTHING_DECIDED}\n\n**What you would do:** {what}\n\n**Time, weekly (our guess):** {time_}\n\n"
-            f"**Skills that help:** {skills}\n\n**Beginners welcome?** {beginners}\n\n"
-            "Interested? Comment here, and also fill in the "
-            f"[founding team form](https://github.com/{REPO}/issues/new?template=join-founding-team.yml). "
-            "Please do not post an address, phone number, or email. Applicants must be 18 or older. "
-            f"Details: [founding-team.md]({BLOB}/docs/founding-team.md)."))
-
-    # Bounties
-    for job, points, kind in table_rows("BOUNTIES.md", "| Bounty | Points | Type |"):
-        items.append(issue(
-            f"Bounty ({points}): {LINK_RE.sub(r'\\1', job)}", ["bounty"],
-            f"**Worth {points} point{'s' if points != '1' else ''}.** Type: {kind}.\n\n"
-            "To take it, comment \"I'll take this\". Nobody has to ask permission, and more than one person "
-            "can work on the same bounty. When you are done, link your work here. A maintainer adds you to "
-            f"the Contributors Wall.\n\nHow points work: [BOUNTIES.md]({BLOB}/BOUNTIES.md)."))
-    return items
+def clean_title(raw):
+    """Turn a markdown link [Title](url) or plain text into a clean title string."""
+    m = LINK_RE.search(raw)
+    if m:
+        return m.group(1)
+    return raw.strip()
 
 
 def ensure_labels():
+    print("Ensuring labels exist...")
+    existing_json = gh("label", "list", "--json", "name", "-R", REPO)
+    existing = {item["name"] for item in json.loads(existing_json.stdout)}
+    
     for name, (color, desc) in LABELS.items():
-        print(f"label: {name}")
-        if not DRY:
-            gh("label", "create", name, "--color", color, "--description", desc, "--force")
+        if DRY:
+            print(f"  [dry-run] Would ensure label '{name}' (color #{color})")
+            continue
+        if name in existing:
+            gh("label", "edit", name, "--color", color, "--description", desc, "-R", REPO, check=False)
+        else:
+            gh("label", "create", name, "--color", color, "--description", desc, "-R", REPO, check=False)
 
 
-def existing_issues():
-    out = gh("issue", "list", "--repo", REPO, "--state", "all", "--limit", "1000",
-             "--json", "title,number").stdout
-    return {i["title"]: i["number"] for i in json.loads(out)}
+def create_issue(title, body, labels):
+    if DRY:
+        print(f"  [dry-run] Would create issue: '{title}' with labels {labels}")
+        return
+    
+    # Check if issue already exists
+    existing = gh("issue", "list", "--search", f'"{title}" in:title', "--json", "title", "-R", REPO)
+    issues = json.loads(existing.stdout)
+    if any(i["title"] == title for i in issues):
+        print(f"  Skipping existing issue: '{title}'")
+        return
+
+    label_args = []
+    for l in labels:
+        label_args.extend(["--label", l])
+    
+    gh("issue", "create", "--title", title, "--body", body, *label_args, "-R", REPO)
+    time.sleep(1) # Be nice to GitHub API
 
 
-def link_decisions(numbers):
-    """Replace 'Issues tab' in DECISIONS.md with a link to each decision issue."""
-    path = ROOT / "DECISIONS.md"
-    lines, changed = path.read_text(encoding="utf-8").splitlines(), False
-    for n, line in enumerate(lines):
-        m = re.match(r"\|\s*(\d+)\s*\|", line)
-        if m and line.rstrip().endswith("| Issues tab |"):
-            title = next((t for t in numbers if t.startswith(f"Decision {m.group(1)}:")), None)
-            if title:
-                link = f"[Comment](https://github.com/{REPO}/issues/{numbers[title]})"
-                lines[n] = line.rstrip()[: -len("Issues tab |")] + link + " |"
-                changed = True
-    if changed and not DRY:
-        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    return changed
+def setup_starter_issues():
+    print("Setting up starter issues from docs/starter-issues.md...")
+    rows = table_rows("docs/starter-issues.md")
+    for cells in rows:
+        if len(cells) < 3:
+            continue
+        title = clean_title(cells[0])
+        desc = cells[1]
+        labels_str = cells[2]
+        labels = [l.strip() for l in labels_str.split(",") if l.strip()]
+        body = f"{desc}\n\nRead more in [starter-issues.md]({BLOB}/docs/starter-issues.md)."
+        create_issue(title, body, labels)
+
+
+def setup_decisions():
+    print("Setting up decision issues from DECISIONS.md...")
+    rows = table_rows("DECISIONS.md")
+    for cells in rows:
+        if len(cells) < 2:
+            continue
+        title = clean_title(cells[0])
+        status = cells[1]
+        body = f"{NOTHING_DECIDED}\n\nStatus: {status}\n\nRead more in [DECISIONS.md]({BLOB}/DECISIONS.md)."
+        create_issue(title, body, ["decision", "needs owner"])
+
+
+def setup_challenges():
+    print("Setting up challenge issues from CHALLENGES.md...")
+    rows = table_rows("CHALLENGES.md")
+    for cells in rows:
+        if len(cells) < 2:
+            continue
+        title = clean_title(cells[0])
+        desc = cells[1]
+        body = f"{desc}\n\nRead more in [CHALLENGES.md]({BLOB}/CHALLENGES.md)."
+        create_issue(title, body, ["challenge", "help wanted"])
+
+
+def setup_bounties():
+    print("Setting up bounty issues from BOUNTIES.md...")
+    rows = table_rows("BOUNTIES.md")
+    for cells in rows:
+        if len(cells) < 3:
+            continue
+        title = clean_title(cells[0])
+        points = cells[1]
+        desc = cells[2]
+        body = f"**Points:** {points}\n\n{desc}\n\nRead more in [BOUNTIES.md]({BLOB}/BOUNTIES.md)."
+        create_issue(title, body, ["bounty", "needs owner"])
 
 
 def main():
+    if not DRY and not Path(".git").exists() and "GH_TOKEN" not in sys.modules:
+        # Just a sanity check reminder
+        pass
+    
     ensure_labels()
-    have = {} if DRY else existing_issues()
-    created = skipped = 0
-    for it in build_issues():
-        if it["title"] in have:
-            skipped += 1
-            continue
-        print(f"issue: {it['title']}  {it['labels']}")
-        if not DRY:
-            args = ["issue", "create", "--repo", REPO, "--title", it["title"], "--body", it["body"]]
-            for lab in it["labels"]:
-                args += ["--label", lab]
-            gh(*args)
-            time.sleep(2)  # be gentle with GitHub's rate limits
-        created += 1
-    print(f"created {created}, skipped {skipped}")
-    if not DRY:
-        print("linked decisions:", link_decisions(existing_issues()))
+    setup_starter_issues()
+    setup_decisions()
+    setup_challenges()
+    setup_bounties()
+    print("Bootstrap complete!")
 
 
 if __name__ == "__main__":
